@@ -159,6 +159,6 @@ python evaluate.py
 
 ## License & Credits
 
-- License: MIT (or repository default).
 - Powered by PyTorch, Torchvision, and scikit-learn.
 - Signature dataset alignment inspired by the CEDAR signature repository—ensure compliance with the dataset’s license when distributing.
+
