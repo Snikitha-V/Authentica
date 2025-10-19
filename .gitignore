@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.build/
+.dist/
+
+# Environments
+.venv/
+.venv-gpu/
+ENV/
+env/
+venv/
+
+# VSCode
+.vscode/
+
+# Data & checkpoints
+checkpoints/*.pth
+raw/**
+*.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+Thumbs.db
+.DS_Store
