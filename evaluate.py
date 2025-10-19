@@ -6,8 +6,17 @@ from config import *
 import utils
 import os
 import numpy as np
+import random as pyrandom
 
-transform = get_transforms(IMG_SIZE)
+# Reproducibility
+pyrandom.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+# Deterministic eval transforms (no augmentation)
+transform = get_transforms(IMG_SIZE, train=False)
 test_dataset = SignaturePairsDataset(DATA_DIR_GENUINE, DATA_DIR_FORGED, transform=transform)
 pin = DEVICE.type == "cuda"
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=pin)

@@ -9,11 +9,11 @@ os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 # Training parameters
 IMG_SIZE = (155, 220)
-BATCH_SIZE = 16
-LEARNING_RATE = 1e-3
-NUM_EPOCHS = 20
+BATCH_SIZE = 32
+LEARNING_RATE = 5e-4
+NUM_EPOCHS = 50
 EMBEDDING_DIM = 256  # increased for better separation
-PATIENCE = 5  # Early stopping patience
+PATIENCE = 10  # Early stopping patience
 CONTRASTIVE_MARGIN = 2.0  # increased margin
 NUM_WORKERS = 0  # Windows-safe default; increase if stable
 USE_AMP = True  # enable mixed precision on CUDA
