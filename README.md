@@ -4,7 +4,7 @@ Authentica is a production-oriented Siamese neural network for offline signature
 
 ---
 
-## Performance (October 2025)
+## Performance
 
 | Split | Accuracy | AUC | FAR | FRR | Optimal Threshold |
 |-------|----------|-----|-----|-----|-------------------|
