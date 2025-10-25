@@ -2,3 +2,7 @@ torch
 torchvision
 scikit-learn
 Pillow
+Flask
+Flask-CORS
+Werkzeug
+numpy

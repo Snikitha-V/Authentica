@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTHENTICA - Signature Verification System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ff;
+            --secondary: #f0f;
+            --tertiary: #0f0;
+            --dark-bg: #0a0e27;
+            --darker-bg: #050812;
+            --card-bg: #0f1533;
+            --text-primary: #e0e6ff;
+            --text-secondary: #b0b9d1;
+            --border-color: #1a2557;
+            --success: #00ff00;
+            --danger: #ff0055;
+            --warning: #ffaa00;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            font-family: 'Courier New', monospace;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(0deg, transparent 24%, rgba(15, 255, 255, 0.05) 25%, rgba(15, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(15, 255, 255, 0.05) 75%, rgba(15, 255, 255, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(15, 255, 255, 0.05) 25%, rgba(15, 255, 255, 0.05) 26%, transparent 27%, transparent 74%, rgba(15, 255, 255, 0.05) 75%, rgba(15, 255, 255, 0.05) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+            animation: grid-scroll 20s linear infinite;
+        }
+
+        @keyframes grid-scroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary), 0 0 20px rgba(0, 255, 255, 0.5);
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Main content layout */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Upload section */
+        .upload-section {
+            animation: fadeInLeft 0.8s ease-out 0.2s backwards;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            margin-bottom: 25px;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 25px;
+            background: linear-gradient(180deg, var(--primary), transparent);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary);
+            background: rgba(0, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--secondary);
+            background: rgba(240, 15, 255, 0.15);
+            box-shadow: 0 0 30px rgba(240, 15, 255, 0.5);
+        }
+
+        .upload-area:hover::before {
+            left: 100%;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .upload-hint {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        .upload-status {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            color: var(--success);
+            animation: slideIn 0.3s ease;
+        }
+
+        .upload-status.active {
+            display: block;
+        }
+
+        .upload-status-text {
+            font-size: 0.95em;
+            font-weight: bold;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 24px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .file-input-label:active {
+            transform: translateY(0);
+        }
+
+        .uploaded-file {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .file-icon {
+            color: var(--primary);
+        }
+
+        .file-name {
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+
+        .remove-file {
+            background: transparent;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+        }
+
+        .remove-file:hover {
+            color: var(--warning);
+            transform: rotate(90deg);
+        }
+
+        /* Results section */
+        .results-section {
+            animation: fadeInRight 0.8s ease-out 0.2s backwards;
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 30px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .result-content {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+        }
+
+        .status-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .status-authentic {
+            color: var(--success);
+            text-shadow: 0 0 20px var(--success);
+        }
+
+        .status-forged {
+            color: var(--danger);
+            text-shadow: 0 0 20px var(--danger);
+        }
+
+        .verdict {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .verdict.authentic {
+            color: var(--success);
+        }
+
+        .verdict.forged {
+            color: var(--danger);
+        }
+
+        .confidence-container {
+            margin: 30px 0;
+        }
+
+        .confidence-label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 5px;
+            transition: width 0.6s ease-out;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .confidence-percentage {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .result-details {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            color: var(--primary);
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Loading state */
+        .loading {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .loading-steps {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            opacity: 1;
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .step-icon {
+            font-size: 1.8em;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error state */
+        .error {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 20px;
+            color: var(--danger);
+            margin-top: 20px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Button styles */
+        .verify-btn {
+            width: 100%;
+            padding: 15px 30px;
+            margin-top: 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .verify-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: left 0.5s ease;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+        }
+
+        .verify-btn:hover::before {
+            left: 100%;
+        }
+
+        .verify-btn:active {
+            transform: translateY(0);
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px 20px;
+        }
+
+        .empty-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 60px;
+        }
+
+        .footer-text {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-badge.online {
+            background: rgba(0, 255, 0, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-badge.offline {
+            background: rgba(255, 0, 85, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">◆ AUTHENTICA ◆</div>
+            <div class="tagline">Advanced Signature Verification System</div>
+        </header>
+
+        <div class="content">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2 class="section-title">Signature Analysis</h2>
+                
+                <div>
+                    <h3 style="color: var(--text-secondary); margin: 20px 0 15px 0; font-size: 0.95em; text-transform: uppercase; letter-spacing: 1px;">Reference Signature</h3>
+                    <div class="upload-area" id="realSigArea">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Drop your reference signature here</div>
+                        <div class="upload-hint">or click to browse</div>
+                        <label class="file-input-label">
+                            Browse Files
+                            <input type="file" id="realSigInput" accept="image/*">
+                        </label>
+                    </div>
+                    <div id="realSigFile"></div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="color: var(--text-secondary); margin: 20px 0 15px 0; font-size: 0.95em; text-transform: uppercase; letter-spacing: 1px;">Suspected Signature</h3>
+                    <div class="upload-area" id="suspectedSigArea">
+                        <div class="upload-icon">🔍</div>
+                        <div class="upload-text">Drop the suspected signature here</div>
+                        <div class="upload-hint">or click to browse</div>
+                        <label class="file-input-label">
+                            Browse Files
+                            <input type="file" id="suspectedSigInput" accept="image/*">
+                        </label>
+                    </div>
+                    <div id="suspectedSigFile"></div>
+                </div>
+
+                <button class="verify-btn" id="verifyBtn" disabled>Analyze Signatures</button>
+                
+                <div class="error" id="errorMessage"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <h2 class="section-title">Verification Result</h2>
+                
+                <div class="result-card">
+                    <div id="emptyState" class="empty-state">
+                        <div class="empty-icon">⏳</div>
+                        <p>Upload two signatures to begin verification</p>
+                        <div class="status-badge online" id="apiStatus">
+                            ● Checking API
+                        </div>
+                    </div>
+
+                    <div id="loadingState" class="loading">
+                        <div class="spinner"></div>
+                        <p class="loading-text">Analyzing signatures...</p>
+                        <div class="loading-steps">
+                            <div class="step active" id="step1">
+                                <span class="step-icon">📥</span>
+                                <span>Loading</span>
+                            </div>
+                            <div class="step" id="step2">
+                                <span class="step-icon">🧠</span>
+                                <span>Processing</span>
+                            </div>
+                            <div class="step" id="step3">
+                                <span class="step-icon">📊</span>
+                                <span>Scoring</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="resultState" style="display: none;">
+                        <div class="result-content">
+                            <div class="status-icon" id="statusIcon"></div>
+                            <div class="verdict" id="verdict"></div>
+                            
+                            <div class="confidence-container">
+                                <div class="confidence-label">Confidence Score</div>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" id="confidenceFill" style="width: 0%"></div>
+                                </div>
+                                <div class="confidence-percentage" id="confidencePercentage">0%</div>
+                            </div>
+
+                            <div class="result-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value" id="detailStatus">--</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Distance Score</span>
+                                    <span class="detail-value" id="detailDistance">--</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Threshold</span>
+                                    <span class="detail-value" id="detailThreshold">--</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Message</span>
+                                    <span class="detail-value" id="detailMessage" style="text-align: right; color: var(--text-secondary);">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p class="footer-text">© 2025 AUTHENTICA | Powered by Advanced Deep Learning | All signatures are processed securely</p>
+    </footer>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:5000';
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+        // State
+        let realSigFile = null;
+        let suspectedSigFile = null;
+        let verificationInProgress = false;
+
+        // DOM Elements
+        const realSigInput = document.getElementById('realSigInput');
+        const suspectedSigInput = document.getElementById('suspectedSigInput');
+        const realSigArea = document.getElementById('realSigArea');
+        const suspectedSigArea = document.getElementById('suspectedSigArea');
+        const realSigFileDiv = document.getElementById('realSigFile');
+        const suspectedSigFileDiv = document.getElementById('suspectedSigFile');
+        const verifyBtn = document.getElementById('verifyBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const resultState = document.getElementById('resultState');
+        const apiStatus = document.getElementById('apiStatus');
+
+        // Check API health on load
+        async function checkAPIHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    apiStatus.textContent = '● API Online';
+                    apiStatus.className = 'status-badge online';
+                } else {
+                    apiStatus.textContent = '● API Offline';
+                    apiStatus.className = 'status-badge offline';
+                }
+            } catch (error) {
+                apiStatus.textContent = '● API Offline';
+                apiStatus.className = 'status-badge offline';
+                console.error('API health check failed:', error);
+            }
+        }
+
+        checkAPIHealth();
+        setInterval(checkAPIHealth, 5000); // Check every 5 seconds
+
+        // File handling
+        function handleFileSelect(file, isRealSig) {
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload an image file');
+                return;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                showError('File size exceeds 10MB limit');
+                return;
+            }
+
+            if (isRealSig) {
+                realSigFile = file;
+                displayFile(realSigFileDiv, file, () => {
+                    realSigFile = null;
+                    realSigFileDiv.innerHTML = '';
+                    updateVerifyBtn();
+                });
+            } else {
+                suspectedSigFile = file;
+                displayFile(suspectedSigFileDiv, file, () => {
+                    suspectedSigFile = null;
+                    suspectedSigFileDiv.innerHTML = '';
+                    updateVerifyBtn();
+                });
+            }
+
+            updateVerifyBtn();
+            clearError();
+        }
+
+        function displayFile(container, file, onRemove) {
+            container.innerHTML = `
+                <div class="uploaded-file">
+                    <div class="file-info">
+                        <span class="file-icon">✓</span>
+                        <span class="file-name">${file.name}</span>
+                    </div>
+                    <button class="remove-file" type="button">✕</button>
+                </div>
+                <div class="upload-status active">
+                    <span class="upload-status-text">✓ File uploaded successfully</span>
+                </div>
+            `;
+            container.querySelector('.remove-file').addEventListener('click', onRemove);
+        }
+
+        function updateVerifyBtn() {
+            verifyBtn.disabled = !realSigFile || !suspectedSigFile || verificationInProgress;
+        }
+
+        // Drag and drop
+        ['realSigArea', 'suspectedSigArea'].forEach(id => {
+            const area = document.getElementById(id);
+            const isReal = id === 'realSigArea';
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                area.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                area.addEventListener(eventName, () => {
+                    area.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                area.addEventListener(eventName, () => {
+                    area.classList.remove('dragover');
+                }, false);
+            });
+
+            area.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0], isReal);
+                }
+            }, false);
+
+            area.addEventListener('click', () => {
+                if (isReal) realSigInput.click();
+                else suspectedSigInput.click();
+            });
+        });
+
+        realSigInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0], true);
+        });
+
+        suspectedSigInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0], false);
+        });
+
+        // Error handling
+        function showError(message) {
+            errorMessage.textContent = '⚠ ' + message;
+            errorMessage.classList.add('active');
+        }
+
+        function clearError() {
+            errorMessage.classList.remove('active');
+        }
+
+        // Verification
+        verifyBtn.addEventListener('click', async () => {
+            if (!realSigFile || !suspectedSigFile) return;
+
+            verificationInProgress = true;
+            updateVerifyBtn();
+            clearError();
+
+            emptyState.style.display = 'none';
+            loadingState.classList.add('active');
+            resultState.style.display = 'none';
+
+            // Simulate step progression
+            const steps = ['step1', 'step2', 'step3'];
+            let currentStep = 0;
+            const stepInterval = setInterval(() => {
+                if (currentStep > 0) {
+                    document.getElementById(steps[currentStep - 1]).classList.remove('active');
+                }
+                if (currentStep < steps.length) {
+                    document.getElementById(steps[currentStep]).classList.add('active');
+                    currentStep++;
+                }
+            }, 800);
+
+            try {
+                const formData = new FormData();
+                formData.append('real_sig', realSigFile);
+                formData.append('suspected_sig', suspectedSigFile);
+
+                const response = await fetch(`${API_URL}/verify`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                clearInterval(stepInterval);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Verification failed');
+                }
+
+                const result = await response.json();
+
+                // Display results
+                displayResult(result);
+
+            } catch (error) {
+                clearInterval(stepInterval);
+                console.error('Verification error:', error);
+                showError(error.message || 'Failed to verify signatures. Make sure the API is running.');
+                emptyState.style.display = 'block';
+                loadingState.classList.remove('active');
+            } finally {
+                verificationInProgress = false;
+                updateVerifyBtn();
+            }
+        });
+
+        function displayResult(result) {
+            loadingState.classList.remove('active');
+            resultState.style.display = 'block';
+
+            const isAuthentic = result.is_authentic;
+            const statusIcon = document.getElementById('statusIcon');
+            const verdict = document.getElementById('verdict');
+            const confidenceFill = document.getElementById('confidenceFill');
+            const confidencePercentage = document.getElementById('confidencePercentage');
+
+            statusIcon.textContent = isAuthentic ? '✓' : '✗';
+            statusIcon.className = isAuthentic ? 'status-icon status-authentic' : 'status-icon status-forged';
+
+            verdict.textContent = result.verdict;
+            verdict.className = isAuthentic ? 'verdict authentic' : 'verdict forged';
+
+            const confidence = result.confidence;
+            confidenceFill.style.width = confidence + '%';
+            confidencePercentage.textContent = confidence.toFixed(1) + '%';
+
+            document.getElementById('detailStatus').textContent = result.verdict;
+            document.getElementById('detailDistance').textContent = result.distance.toFixed(4);
+            document.getElementById('detailThreshold').textContent = result.threshold.toFixed(4);
+            document.getElementById('detailMessage').textContent = result.message;
+        }
+    </script>
+</body>
+</html>
